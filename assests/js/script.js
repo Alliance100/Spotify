@@ -2,6 +2,44 @@ let currentSong = new Audio();
 let songs;
 let currFolder;
 
+const albums = [
+    {
+        folder: "Subh",
+        tracks: [
+            "Still Rollin - Shubh.mp3",
+            "King Shit - Shubh.mp3"
+        ]
+    },
+    {
+        folder: "karan aujla",
+        tracks: [
+            "Wavy - Karan Aujla.mp3",
+            "Courtside - Karan Aujla.mp3"
+        ]
+    },
+    {
+        folder: "ap",
+        tracks: [
+            "STFU - AP Dhillon.mp3"
+        ]
+    },
+    {
+        folder: "Diljit",
+        tracks: [
+            "Born To Shine - Diljit Dosanjh.mp3",
+            "Water - Diljit Dosanjh.mp3"
+        ]
+    },
+    {
+        folder: "Chill_(mood)",
+        tracks: []
+    },
+    {
+        folder: "Bright_(mood)",
+        tracks: []
+    }
+];
+
 function secondsToMinutesSeconds(seconds) {
     if (isNaN(seconds) || seconds < 0) {
         return "00:00";
@@ -18,19 +56,10 @@ function secondsToMinutesSeconds(seconds) {
 
 async function getSongs(folder) {
     currFolder = folder
-    let a = await fetch(`http://127.0.0.1:5500/${folder}/`)
-    let response = await a.text();
-    let div = document.createElement("div")
-    div.innerHTML = response;
-    let as = div.getElementsByTagName("a")
-    songs = []
-    for (let index = 0; index < as.length; index++) {
-        const element = as[index];
-        if (element.href.endsWith(".mp3")) {
-            songs.push(element.href.split(`/${folder}/`)[1])
-        }
+    let albumFolder = folder.replace("songs/", "");
+    let album = albums.find(item => item.folder === albumFolder);
+    songs = album ? album.tracks : [];
 
-    }
     let songUL = document.querySelector(".songList").getElementsByTagName("ul")[0]
     songUL.innerHTML = ""
     for (const song of songs) {
@@ -54,7 +83,11 @@ async function getSongs(folder) {
 }
 
 const playMusic = (track, pause = false) => {
-    currentSong.src = `${currFolder}/` + track
+    if (!track) {
+        return;
+    }
+
+    currentSong.src = encodeURI(`${currFolder}/${track}`)
     if (!pause) {
         currentSong.play()
         play.src = "assests/img/pause.svg"
@@ -66,53 +99,33 @@ const playMusic = (track, pause = false) => {
 }
 
 async function displayAlbums() {
-    let a = await fetch(`http://127.0.0.1:5500/songs/`);
-    let response = await a.text();
-    let div = document.createElement("div");
-    div.innerHTML = response;
-    let anchors = div.getElementsByTagName("a");
     let cardContainer = document.querySelector(".cardContainer");
+    cardContainer.innerHTML = "";
 
-    let array = Array.from(anchors);
-    for (let e of array) {
-        if (e.href.includes("/songs") && !e.href.includes(".htaccess")) {
+    for (let album of albums) {
+        let fetchInfo = await fetch(encodeURI(`songs/${album.folder}/info.json`));
 
-            let folder = e.href.split("/").filter(Boolean).pop();
+        if (fetchInfo.ok) {
+            let response = await fetchInfo.json();
 
-            if (folder !== "songs") {
-
-                let fetchInfo = await fetch(`http://127.0.0.1:5500/songs/${folder}/info.json`);
-
-                if (fetchInfo.ok) {
-                    let response = await fetchInfo.json();
-
-                    cardContainer.innerHTML += `<div data-folder="${folder}" class="card">
-                                    <div class="play">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                            <path d="M8 5V19L19 12L8 5Z" fill="#141B34" />
-                                        </svg>
-                                    </div>
-                                    <img src="/songs/${folder}/cover.jpg" alt="">
-                                    <h2>${response.title}</h2>
-                                    <p>${response.description}</p>
-                                </div>`;
-                }
-            }
+            cardContainer.innerHTML += `<div data-folder="${album.folder}" class="card">
+                            <div class="play">
+                                <svg width="16" height="16" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M8 5V19L19 12L8 5Z" fill="#141B34" />
+                                </svg>
+                            </div>
+                            <img src="${encodeURI(`songs/${album.folder}/cover.jpg`)}" alt="">
+                            <h2>${response.title}</h2>
+                            <p>${response.description}</p>
+                        </div>`;
         }
     }
+
     Array.from(document.getElementsByClassName("card")).forEach(e => {
         e.addEventListener("click", async item => {
             songs = await getSongs(`songs/${item.currentTarget.dataset.folder}`);
             playMusic(songs[0])
-        })
-    })
 
-
-    Array.from(document.getElementsByClassName("card")).forEach(e => {
-        e.addEventListener("click", async item => {
-            
-            songs = await getSongs(`songs/${item.currentTarget.dataset.folder}`);
-            
             if (window.innerWidth <= 1200) {
                 document.querySelector(".left").style.left = "0";
             }
@@ -123,7 +136,7 @@ async function displayAlbums() {
 
 async function main() {
 
-    await getSongs("songs/subh")
+    await getSongs("songs/Subh")
     playMusic(songs[0], true)
 
     displayAlbums()
@@ -156,7 +169,7 @@ async function main() {
     previous.addEventListener("click", () => {
         currentSong.pause()
 
-        let index = songs.indexOf(currentSong.src.split("/").slice(-1)[0])
+        let index = songs.indexOf(decodeURIComponent(currentSong.src.split("/").slice(-1)[0]))
         if ((index - 1) >= 0) {
             playMusic(songs[index - 1])
         }
@@ -166,7 +179,7 @@ async function main() {
         currentSong.pause()
 
 
-        let index = songs.indexOf(currentSong.src.split("/").slice(-1)[0])
+        let index = songs.indexOf(decodeURIComponent(currentSong.src.split("/").slice(-1)[0]))
         if ((index + 1) < songs.length) {
             playMusic(songs[index + 1])
         }
