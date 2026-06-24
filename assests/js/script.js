@@ -32,7 +32,12 @@ const albums = [
     },
     {
         folder: "Chill_(mood)",
-        tracks: []
+        tracks: [
+            "Dil Pe Zakham.mp3",
+            "Oh Sahib.mp3",
+            "SAADGI.mp3",
+            "Unke Andaaz e Karam.mp3"
+        ]
     },
     {
         folder: "Bright_(mood)",
