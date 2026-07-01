@@ -26,17 +26,17 @@ const albums = [
     {
         folder: "Diljit",
         tracks: [
-            "Born To Shine - Diljit Dosanjh.mp3",
-            "Water - Diljit Dosanjh.mp3"
+            "Water - Diljit Dosanjh.mp3",
+            "Born To Shine - Diljit Dosanjh.mp3"
         ]
     },
     {
         folder: "Chill_(mood)",
         tracks: [
-            "Dil Pe Zakham.mp3",
             "Oh Sahib.mp3",
             "SAADGI.mp3",
-            "Unke Andaaz e Karam.mp3"
+            "Unke Andaaz e Karam.mp3",
+            "Dil Pe Zakham.mp3"
         ]
     },
     {
